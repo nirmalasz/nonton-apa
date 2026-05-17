@@ -21,6 +21,13 @@ services:
       resources:
         limits:
           memory: 4G        # cap container ram at 4 gb
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    
 
   cassandra-2:
     image: cassandra:latest
@@ -31,7 +38,7 @@ services:
       - nontonapa-net
     environment:
       - CASSANDRA_CLUSTER_NAME=NontonApaCluster
-      - CASSANDRA_SEEDS=nonton-apa
+      - CASSANDRA_SEEDS=ncassandra-1
       - MAX_HEAP_SIZE=2G
       - HEAP_NEWSIZE=512M
     depends_on:
@@ -40,3 +47,14 @@ services:
       resources:
         limits:
           memory: 4G
+  db-setup:
+    image: cassandra:latest
+    container_name: nonton-apa-setup
+    networks:
+      - nontonapa-net
+    depends_on:
+      cassandra-1:
+        condition: service_healthy
+    volumes:
+      - ./backend/dump.cql:/scripts/dump.cql
+    command: /bin/bash -c "echo 'Setting up NontonApa Database...' && cqlsh cassandra-1 -f /scripts/dump.cql && echo 'Schema setup complete!'"

@@ -9,7 +9,11 @@ CREATE TABLE user_activity_log (
     user_id uuid,
     watched_at timestamp,
     movie_id uuid,
+    genre text,
     rating int,
+    review text,
+    is_liked boolean,
+    is_rewatch boolean,
     PRIMARY KEY (user_id, watched_at)
 ) WITH CLUSTERING ORDER BY (watched_at DESC);
 
