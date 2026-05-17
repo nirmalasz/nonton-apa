@@ -1,0 +1,42 @@
+version: "3.8"
+
+networks:
+  nontonapa-net:
+    driver: bridge
+
+services:
+  cassandra-1:
+    image: cassandra:latest # cassandra:4.1.3
+    container_name: nonton-apa
+    ports:
+      - 9042:9042
+    networks:
+      - nontonapa-net
+    environment:
+      - CASSANDRA_CLUSTER_NAME=NontonApaCluster
+      - CASSANDRA_SEEDS=cassandra-1
+      - MAX_HEAP_SIZE=2G   # sets internal java heap to 2 gb
+      - HEAP_NEWSIZE=512M   # sets internal new generation heap overhead
+    deploy:
+      resources:
+        limits:
+          memory: 4G        # cap container ram at 4 gb
+
+  cassandra-2:
+    image: cassandra:latest
+    container_name: nonton-apa-2
+    ports:
+      - 9043:9042
+    networks:
+      - nontonapa-net
+    environment:
+      - CASSANDRA_CLUSTER_NAME=NontonApaCluster
+      - CASSANDRA_SEEDS=nonton-apa
+      - MAX_HEAP_SIZE=2G
+      - HEAP_NEWSIZE=512M
+    depends_on:
+      - cassandra-1
+    deploy:
+      resources:
+        limits:
+          memory: 4G
