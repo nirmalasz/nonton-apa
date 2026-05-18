@@ -1,14 +1,22 @@
 
-CREATE KEYSPACE nontonapa 
+CREATE KEYSPACE nontonapa IF NOT EXIST nontonapa
 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
 USE nontonapa;
+
+-- user table for Log In
+CREATE TABLE IF NOT EXISTS users (
+    user_id uuid PRIMARY KEY,
+    username text,
+    password text -- hashed ofc
+);
+CREATE INDEX IF NOT EXISTS ON users (username); 
 
 -- User Activity Log for (Time-Series)
 CREATE TABLE user_activity_log (
     user_id uuid,
     watched_at timestamp,
-    movie_id uuid,
+    tmdb_id int, -- changed movie_id to tmdb_id since ill be using tmdb API
     genre text,
     rating int,
     review text,
@@ -18,30 +26,30 @@ CREATE TABLE user_activity_log (
 ) WITH CLUSTERING ORDER BY (watched_at DESC);
 
 -- User Preference Profile
-CREATE TABLE user_preference_profile (
+CREATE TABLE IF NOT EXISTS user_preference_profile (
     user_id uuid,
     feature_name text, 
-    feature_value text,
+    feature_weight int, -- change feature value to weight to track numeric score how likely user love the movie
     PRIMARY KEY (user_id, feature_name)
 );
 
+-- dont need this metadata since we will just fetch movie from tmdb
 -- Movie Metadata (Entity Store)
-CREATE TABLE movie_metadata (
-    movie_id uuid,
-    title text,
-    genres set<text>, 
-    duration int,
-    director text,
-    cast list<text>,
-    PRIMARY KEY (movie_id)
-);
+-- CREATE TABLE movie_metadata (
+--     movie_id uuid,
+--     title text,
+--     genres set<text>, 
+--     duration int,
+--     director text,
+--     cast list<text>,
+--     PRIMARY KEY (movie_id)
+-- );
 
 -- Recommendation Table
-CREATE TABLE recommendation_table (
+CREATE TABLE IF NOT EXISTS recommendation_table (
     user_id uuid,
     rank int,
-    movie_id uuid,
-    title text,
+    tmdb_id int,
     match_score double,
     PRIMARY KEY (user_id, rank)
 ) WITH CLUSTERING ORDER BY (rank ASC);
