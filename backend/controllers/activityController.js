@@ -2,9 +2,9 @@ const activityRepository = require('../repositories/activityRepository');
 
 const recordWatch = async (req, res) => {
     try {
-        const { userId, movieId, genre, rating, review, isLiked, isRewatch } = req.body;
+        const { userId, tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
         await activityRepository.logWatchActivity(
-            userId, movieId, genre, rating,
+            userId, tmdbId, genre, rating,
             review !== undefined ? review : null,
             isLiked !== undefined ? isLiked : false,
             isRewatch !== undefined ? isRewatch : false

@@ -1,12 +1,12 @@
 const db = require('../database/db');
 
-const logWatchActivity = async (userId, movieId, genre, rating, review, isLiked, isRewatch) => {
+const logWatchActivity = async (userId, tmdbId, genre, rating, review, isLiked, isRewatch) => {
     const query = `
         INSERT INTO user_activity_log 
-        (user_id, watched_at, movie_id, genre, rating, review, is_liked, is_rewatch) 
+        (user_id, watched_at, tmdb_id, genre, rating, review, is_liked, is_rewatch) 
         VALUES (?, toTimestamp(now()), ?, ?, ?, ?, ?, ?)
         `;
-    const params = [userId, movieId, genre, rating, review, isLiked, isRewatch];
+    const params = [userId, tmdbId, genre, rating, review, isLiked, isRewatch];
     
     await db.execute(query, params, { prepare: true });
 };
