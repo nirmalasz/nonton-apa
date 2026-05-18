@@ -17,4 +17,20 @@ const getUserHistory = async (userId, limit = 10) => {
     return result.rows;
 };
 
-module.exports = { logWatchActivity, getUserHistory };
+const saveScore = async (userId, genre, weight) => {
+    const query = `
+        INSERT INTO user_preference_profile (user_id, feature_name, feature_weight)
+        VALUES (?, ?, ?)
+    `;
+    const result = await db.execute(query, [userId, genre, weight], { prepare: true });
+};
+
+const getCurrentScore = async (userId, genre) => {
+    const query = ` SELECT feature_weight FROM user_preference_profile WHERE user_id = ? AND feature_name = ?`;
+    const result = await db.execute(query, [userId, genre], { prepare: true});
+    return result.rows[0];
+};
+
+
+
+module.exports = { logWatchActivity, getUserHistory, saveScore, getCurrentScore };

@@ -15,4 +15,20 @@ const recordWatch = async (req, res) => {
     }
 };
 
+const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch) => {
+    let addedPoint = 0;
+    if (isLiked) addedPoint += 5;
+    if (rating === 5) addedPoint += 4;
+    if (isRewatch) addedPoint += 3;
+    else if (rating >= 3) addedPoint += 2;
+    else if (rating <= 2) addedPoint -= 2;
+    const currentProfile = await activityRepository.getCurrentScore(userId, genre);
+    
+    let currentWeight = 0;
+    if (currentProfile.rows.length > 0) currentWeight = currentProfile.rows[0].feature_weight;
+
+    const newWeight = currentWeight + addedPoint;
+    await activityRepository.saveScore(userId, genre, newWeight);
+}
+
 module.exports = { recordWatch };
