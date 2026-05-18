@@ -1,20 +1,5 @@
 const activityRepository = require('../repositories/activityRepository');
 
-const recordWatch = async (req, res) => {
-    try {
-        const { userId, tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
-        await activityRepository.logWatchActivity(
-            userId, tmdbId, genre, rating,
-            review !== undefined ? review : null,
-            isLiked !== undefined ? isLiked : false,
-            isRewatch !== undefined ? isRewatch : false
-        );
-        res.status(201).json({ success: true, message: "Watch log recorded successfully." });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
 const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch) => {
     let addedPoint = 0;
     if (isLiked) addedPoint += 5;
@@ -28,7 +13,27 @@ const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch)
     if (currentProfile.rows.length > 0) currentWeight = currentProfile.rows[0].feature_weight;
 
     const newWeight = currentWeight + addedPoint;
-    await activityRepository.saveScore(userId, genre, newWeight);
-}
+    await activityRepository.updateUserPreferenceScore(userId, genre, newWeight);
+};
+
+const recordWatch = async (req, res) => {
+    try {
+        const { userId, tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
+        await activityRepository.logWatchActivity(
+            userId, tmdbId, genre, rating,
+            review !== undefined ? review : null,
+            isLiked !== undefined ? isLiked : false,
+            isRewatch !== undefined ? isRewatch : false
+        );
+
+        calculateAndSaveWeight(userId, genre, rating, isLiked, isRewatch);
+
+        res.status(201).json({ success: true, message: "Watch log recorded and preferences updated successfully." });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 
 module.exports = { recordWatch };

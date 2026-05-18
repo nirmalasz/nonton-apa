@@ -17,7 +17,7 @@ const getUserHistory = async (userId, limit = 10) => {
     return result.rows;
 };
 
-const saveScore = async (userId, genre, weight) => {
+const updateUserPreferenceScore = async (userId, genre, weight) => {
     const query = `
         INSERT INTO user_preference_profile (user_id, feature_name, feature_weight)
         VALUES (?, ?, ?)
@@ -42,7 +42,7 @@ const getUserTopGenre = async (userId) => {
 module.exports = { 
     logWatchActivity, 
     getUserHistory, 
-    saveScore, 
+    updateUserPreferenceScore, 
     getCurrentScore,
     getUserTopGenre
 };
