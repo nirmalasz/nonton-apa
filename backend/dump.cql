@@ -4,13 +4,13 @@ WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
 USE nontonapa;
 
--- user table for Log In
+-- user table for Log In and Register
 CREATE TABLE IF NOT EXISTS users (
     user_id uuid PRIMARY KEY,
     username text,
     password text -- hashed ofc
 );
-CREATE INDEX IF NOT EXISTS ON users (username); 
+CREATE INDEX IF NOT EXISTS ON users (username); -- allow search user by username during Log In
 
 -- User Activity Log for (Time-Series)
 CREATE TABLE user_activity_log (
