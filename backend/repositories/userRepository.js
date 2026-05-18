@@ -11,4 +11,10 @@ const getUserByUsername = async (username) => {
     return result.rows[0];
 };
 
-module.exports = { createUser, getUserByUsername };
+const getAllUser = async () => {
+    const query = `SELECT user_id FROM users`;
+    const result = await db.execute(query);
+    return result.rows;
+};
+
+module.exports = { createUser, getUserByUsername, getAllUser };

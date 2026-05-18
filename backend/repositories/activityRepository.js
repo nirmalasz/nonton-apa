@@ -26,11 +26,23 @@ const saveScore = async (userId, genre, weight) => {
 };
 
 const getCurrentScore = async (userId, genre) => {
-    const query = ` SELECT feature_weight FROM user_preference_profile WHERE user_id = ? AND feature_name = ?`;
+    const query = `SELECT feature_weight FROM user_preference_profile WHERE user_id = ? AND feature_name = ?`;
     const result = await db.execute(query, [userId, genre], { prepare: true});
     return result.rows[0];
 };
 
+const getUserTopGenre = async (userId) => {
+    const query = 'SELECT feature_name FROM user_preference_profile WHERE user_id = ? ORDER BY feature_weight DESC LIMIT 1 ALLOW FILTERING';
+    const result = await db.execute(query, [userId], { prepare: true });
+    if(result.rows.length > 0) return result.rows[0].feature_name;
+    return 'Romance';
+};
 
 
-module.exports = { logWatchActivity, getUserHistory, saveScore, getCurrentScore };
+module.exports = { 
+    logWatchActivity, 
+    getUserHistory, 
+    saveScore, 
+    getCurrentScore,
+    getUserTopGenre
+};
