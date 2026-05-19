@@ -42,7 +42,7 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
                                 placeholder="Search movies..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-80 h-10 pl-10 pr-4 rounded-full bg-white border border-[#8FBFDC] text-[#0A1116] placeholder-[#8FBFDC] focus:outline-none focus:border-[#4590BC] focus:ring-1 focus:ring-[#4590BC] transition-all"
+                                className="w-80 h-10 pl-10 pr-4 rounded-full bg-white border border-[#6BAFD6] text-[#0A1116] placeholder-[#8FBFDC] focus:outline-none focus:border-[#6BAFD6] focus:ring-1 focus:ring-[#6BAFD6] transition-all"
                             />
                             <svg
                                 className="absolute left-3.5 text-[#8FBFDC] w-5 h-5"
