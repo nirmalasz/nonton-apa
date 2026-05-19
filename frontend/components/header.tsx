@@ -29,7 +29,7 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
     );
 
     return (
-        <header className="w-full bg-[#F9FBFD] border-b border-[#8FBFDC]/30 sticky top-0 z-50">
+        <header className="w-full bg-[#F9FBFD] border-b-2 border-[#8FBFDC] sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
                 <div className="flex items-center gap-8">
@@ -90,11 +90,16 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
                     {/* When Logged In */}
                     {isLoggedIn && !isLoginRoute && !isRegisterRoute && (
                         <>
-                            <Link href="/watchlist" className="text-[#0A1116] font-medium hover:text-[#4590BC] px-3 py-2 transition-colors">
-                                Watchlist
+                            <Link href="/logout" className="text-[#0A1116] font-medium hover:text-[#4590BC] py-2 transition-colors">
+                                Log Out
                             </Link>
-                            <div className="w-10 h-10 rounded-full bg-[#8FBFDC] flex items-center justify-center text-white font-bold cursor-pointer hover:bg-[#4590BC] transition-colors">
-                                {/* Mock User Avatar */}
+                            <Link href="/diary" className="text-[#0A1116] font-medium hover:text-[#4590BC] py-2 transition-colors">
+                                Diary
+                            </Link>
+                            <Link href="/recommendations" className="text-[#0A1116] font-medium hover:text-[#4590BC] pr-3 py-2 transition-colors">
+                                Recommendations
+                            </Link>
+                            <div className="w-10 h-10 rounded-full bg-[#8FBFDC] flex items-center justify-center text-white font-bold cursor-pointer transition-colors">
                                 U
                             </div>
                         </>
