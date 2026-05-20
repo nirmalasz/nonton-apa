@@ -7,50 +7,6 @@ import { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { mapGenreIdsToNames } from '@/utills/genreMap';
 
-// will later replace this with get popular movie api
-const MOCK_TRENDING_MOVIES = [
-  {
-    id: 157336,
-    title: 'Interstellar',
-    year: '2014',
-    posterUrl: 'https://www.themoviedb.org/t/p/w1280/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg',
-    genres: ['Adventure', 'Sci-Fi'],
-    rating: 8.6,
-  },
-  {
-    id: 315162,
-    title: 'Puss in Boots: The Last Wish',
-    year: '2022',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/kuf6dutpsT0vSVehic3EZIqkOBt.jpg',
-    genres: ['Animation', 'Adventure'],
-    rating: 8.3,
-  },
-  {
-    id: 687163,
-    title: 'Project Hail Mary',
-    year: '2026', 
-    posterUrl: 'https://www.themoviedb.org/t/p/w1280/yihdXomYb5kTeSivtFndMy5iDmf.jpg',
-    genres: ['Sci-Fi', 'Drama'],
-    rating: 9.0,
-  },
-  {
-    id: 546554,
-    title: 'Knives Out',
-    year: '2019',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/pThyQovXQrw2m0s9x82twj48Jq4.jpg',
-    genres: ['Comedy', 'Mystery'],
-    rating: 7.9,
-  },
-  {
-    id: 372054,
-    title: 'The Devil Wears Prada 2',
-    year: '2026',
-    posterUrl: 'https://www.themoviedb.org/t/p/w1280/xTI42pmsP5EDnvsNJPEDubwWBQO.jpg',
-    genres: ['Comedy', 'Drama'],
-    rating: 7.8,
-  }
-];
-
 export default function LandingPage() {
   const [trendingMovies, setTrendingMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
