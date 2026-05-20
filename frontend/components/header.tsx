@@ -6,10 +6,6 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import { api } from "@/services/api";
 
-interface HeaderProps {
-  isLoggedIn?: boolean;
-}
-
 interface SearchResultMovie {
   tmdb_id: number;
   title: string;
@@ -17,7 +13,7 @@ interface SearchResultMovie {
   poster_path: string | null;
 }
 
-export default function Header({ isLoggedIn = false }: HeaderProps) {
+export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -25,6 +21,18 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
   const [results, setResults] = useState<SearchResultMovie[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(api.isAuthenticated());
+  }, [pathname]);
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    api.logout(); // Removes token
+    setIsLoggedIn(false);
+    router.push("/login"); // Boot them to the login page
+  };
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +61,6 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
 
     setIsLoading(true);
 
-    // Wait 300ms after the user stops typing before hitting the backend API
     const delayDebounce = setTimeout(async () => {
       try {
         const data = await api.searchMovies(searchQuery);
@@ -71,19 +78,11 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // If they explicitly press Enter, navigate directly to the top result if available
     if (results.length > 0) {
       router.push(`/movie/${results[0].tmdb_id}`);
       setIsOpen(false);
       setSearchQuery("");
     }
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    // later when implemented with backend will need to router push search
-    console.log("Searching for:", searchQuery);
   };
 
   const Logo = () => (
@@ -227,12 +226,12 @@ export default function Header({ isLoggedIn = false }: HeaderProps) {
           {/* When Logged In */}
           {isLoggedIn && !isLoginRoute && !isRegisterRoute && (
             <>
-              <Link
-                href="/logout"
-                className="text-[#0A1116] font-medium hover:text-[#4590BC] py-2 transition-colors"
-              >
+              <button 
+                onClick={handleLogout} 
+                className="text-[#0A1116] font-medium hover:text-[#4590BC] py-2 transition-colors cursor-pointer"
+            >
                 Log Out
-              </Link>
+            </button>
               <Link
                 href="/diary"
                 className="text-[#0A1116] font-medium hover:text-[#4590BC] py-2 transition-colors"

@@ -10,8 +10,11 @@ import { mapGenreIdsToNames } from '@/utills/genreMap';
 export default function LandingPage() {
   const [trendingMovies, setTrendingMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(()=>{
+    setIsLoggedIn(api.isAuthenticated());
+    setIsLoading(false);
     const fetchTrending = async () => {
       try {
         const movies = await api.getPopularMovies();
@@ -29,6 +32,8 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       {/* HERO SECTION */}
+
+      {!isLoggedIn && (
       <section className="relative w-full bg-[#F9FBFD] border-b border-[#8FBFDC]/20 pt-20 pb-24 overflow-hidden">
         {/* Subtle Background Decoration */}
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[600px] h-[600px] bg-[#8FBFDC]/10 rounded-full blur-3xl pointer-events-none" />
@@ -59,15 +64,13 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      )}
 
       <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-[#0A1116] tracking-tight">
             Trending Now
           </h2>
-          <button className="text-[#4590BC] font-medium hover:shadow-lg hover:-translate-y-0.5 transition-colors border-2 px-6 py-2 rounded-full  border-[#6BAFD6]">
-            See all 
-          </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">

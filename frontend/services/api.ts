@@ -3,6 +3,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 const getHeaders = (requireAuth = false): HeadersInit => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
   };
 
   if (requireAuth) {
@@ -50,6 +51,13 @@ export const api = {
       localStorage.removeItem("token");
     }
   },
+
+  isAuthenticated: () => {
+        if (typeof window !== 'undefined') {
+            return !!localStorage.getItem('token');
+        }
+        return false;
+    },
 
   // movie routes
   searchMovies: async (query: string) => {
@@ -104,6 +112,6 @@ export const api = {
     const data = await res.json();
     if (!res.ok)
       throw new Error(data.error || "Failed to fetch recommendations");
-    return data.recommendations;
+    return data.recommendations ;
   },
 };

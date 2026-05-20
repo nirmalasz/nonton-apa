@@ -3,6 +3,9 @@
 import DetailedMovieCard from "@/components/DetailedMovieCard";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { api } from '@/services/api';
+import Link from 'next/link';
+import { useEffect, useState } from "react";
 
 // MOCK DATA: Updated to include 'overview' matching the TMDB API
 const MOCK_RECOMMENDATIONS = [
@@ -54,10 +57,32 @@ const MOCK_RECOMMENDATIONS = [
 ];
 
 export default function RecommendationsPage() {
+  const [movie, setMovies] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRecs = async () => {
+            try {
+                const data = await api.getRecommendations();
+
+                console.log("REACT RECEIVED THIS DATA:", data);
+
+                setMovies(data);
+            } catch (err: any) {
+                setError("Please log in to see your personalized recommendations.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchRecs();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F9FBFD]">
-        <Header isLoggedIn />
-      <div className="max-w-7xl mx-auto px-6 py-10">
+        <Header />
+      <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
         
         {/* Header Section */}
         <div className="mb-10">
@@ -65,27 +90,45 @@ export default function RecommendationsPage() {
             Recommended for You
           </h1>
           <p className="text-gray-600 text-lg">
-            Based on your recent watch history and favorite genres.
+            Based on your activity log by our recommendation engine.
           </p>
         </div>
-
-        {/* 5-Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {MOCK_RECOMMENDATIONS.map((movie) => (
-            <DetailedMovieCard 
-              key={movie.id}
-              id={movie.id}
-              title={movie.title}
-              year={movie.year}
-              posterUrl={movie.posterUrl}
-              genres={movie.genres}
-              rating={movie.rating}
-              overview={movie.overview}
-            />
-          ))}
-        </div>
-
-      </div>
+       {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#4590BC] border-t-transparent"></div>
+                    </div>
+                ) : error ? (
+                    <div className="text-center py-20">
+                        <p className="text-xl text-red-500 font-semibold mb-4">{error}</p>
+                        <Link href="/login" className="text-[#4590BC] hover:underline font-medium">Go to Login</Link>
+                    </div>
+                ) : (!movie || movie.length === 0)? (
+                    <div className="text-center py-20 bg-white rounded-xl border border-[#8FBFDC]/30 shadow-sm">
+                        <h2 className="text-xl font-bold text-[#0A1116] mb-2">No recommendations yet!</h2>
+                        <p className="text-gray-500">Go log your first movie so we can learn your taste.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">
+                        {movie.map((movie) => (
+                            <div key={movie.tmdb_id} className="relative group">
+                                <div className="absolute top-2 left-2 z-10 bg-[#55a5d3cb] text-white text-xs font-extrabold px-2 py-1 rounded shadow-md">
+                                    {movie.match_score}% Match
+                                </div>
+                                
+                                <DetailedMovieCard
+                                    id={movie.tmdb_id}
+                                    title={movie.title}
+                                    year={movie.release_date}
+                                    posterUrl={movie.poster_path}
+                                    genres={movie.genres || []}
+                                    rating={movie.rating}
+                                    overview={movie.overview}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </main>
       <Footer />
     </div>
   );

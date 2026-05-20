@@ -89,7 +89,7 @@ export default function MovieDetailPage() {
     if (!movie) return <div className="min-h-screen pt-20 text-center">Loading...</div>;
   return (
     <div className="min-h-screen bg-[#F9FBFD] flex flex-col">
-      <Header isLoggedIn />
+      <Header />
       {/* Dark Overlay for Backdrop*/}
       <section className="relative w-full pt-12 pb-20 overflow-hidden bg-[#0A1116]">
         {/* Blurred Backdrop Image */}

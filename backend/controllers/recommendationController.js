@@ -1,29 +1,32 @@
-const activityRepository = require('../repositories/activityRepository');
-const movieRepository = require('../repositories/movieRepository');
+const recommendationRepository = require('../repositories/recommendationRepository');
+const tmdbService = require('../services/tmdbService');
 
 const getRecommendations = async (req, res) => {
     try {
-        const { userId } = req.params;
-        // Ask repository for user history
-        const history = await activityRepository.getUserHistory(userId, 5);
+        const userId = req.user.userId;
 
-        if (history.length === 0) {
-            return res.json({ message: "No history found. Watch some movies first!", recommendations: [] });
+        const recommendationList = await recommendationRepository.getUserRecommendationLists(userId);
+
+        if (!recommendationList || recommendationList.length === 0) {
+            return res.status(200).json({ message: "No history found. Watch some movies first!", recommendations: [] });
         }
 
-        // Determine favorite genre logic
-        const genres = history.map(row => row.genre);
-        const favoriteGenre = genres.sort((a, b) =>
-            genres.filter(v => v === a).length - genres.filter(v => v === b).length
-        ).pop();
+        const rawRecommendation = await Promise.all(
+            recommendationList.map(async (row) => {
+                const movie = await tmdbService.getMovieDetails(row.tmdb_id);
+                if (!movie) {
+                    return null;
+                }
+                return{
+                    ...movie,
+                    match_score: row.match_score 
+                };
+            })
+        );
 
-        // Ask repository for movies and filter them
-        const allMovies = await movieRepository.getAllMovies();
-        const recommendations = allMovies.filter(movie =>
-            movie.genres && movie.genres.includes(favoriteGenre)
-        ).slice(0, 4);
+        const recommendations = rawRecommendation.filter(movie => movie !== null);
 
-        res.json({ favoriteGenre, recommendations });
+        res.status(200).json({ recommendations });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
