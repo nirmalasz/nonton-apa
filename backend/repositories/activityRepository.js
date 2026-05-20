@@ -32,8 +32,11 @@ const getCurrentScore = async (userId, genre) => {
 };
 
 const getUserTopGenre = async (userId) => {
-    const query = 'SELECT feature_name FROM user_preference_profile WHERE user_id = ? ORDER BY feature_weight DESC LIMIT 1 ALLOW FILTERING';
+    const query = 'SELECT feature_name FROM user_preference_profile WHERE user_id = ?';
     const result = await db.execute(query, [userId], { prepare: true });
+
+    if (result.rows.length === 0) return 'Romance';
+    
     if(result.rows.length > 0) return result.rows[0].feature_name;
     return 'Romance';
 };

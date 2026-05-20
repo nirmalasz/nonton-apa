@@ -11,10 +11,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/movies', movieRoutes);
+
+require('./workers/recommendationEngine');
 
 const PORT = 4000;
 

@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cassandra = require('cassandra-driver');

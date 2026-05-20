@@ -7,10 +7,12 @@ const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch)
     if (isRewatch) addedPoint += 3;
     else if (rating >= 3) addedPoint += 2;
     else if (rating <= 2) addedPoint -= 2;
-    const currentProfile = await activityRepository.getCurrentScore(userId, genre);
+    const currentProfileRow = await activityRepository.getCurrentScore(userId, genre);
     
     let currentWeight = 0;
-    if (currentProfile.rows.length > 0) currentWeight = currentProfile.rows[0].feature_weight;
+    if (currentProfileRow) {
+        currentWeight = currentProfileRow.feature_weight;
+    }
 
     const newWeight = currentWeight + addedPoint;
     await activityRepository.updateUserPreferenceScore(userId, genre, newWeight);
@@ -18,7 +20,8 @@ const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch)
 
 const recordWatch = async (req, res) => {
     try {
-        const { userId, tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
+        const userId = req.user.userId;
+        const { tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
         await activityRepository.logWatchActivity(
             userId, tmdbId, genre, rating,
             review !== undefined ? review : null,
@@ -26,7 +29,7 @@ const recordWatch = async (req, res) => {
             isRewatch !== undefined ? isRewatch : false
         );
 
-        calculateAndSaveWeight(userId, genre, rating, isLiked, isRewatch);
+        await calculateAndSaveWeight(userId, genre, rating, isLiked, isRewatch);
 
         res.status(201).json({ success: true, message: "Watch log recorded and preferences updated successfully." });
     } catch (error) {

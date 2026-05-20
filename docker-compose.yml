@@ -38,7 +38,7 @@ services:
       - nontonapa-net
     environment:
       - CASSANDRA_CLUSTER_NAME=NontonApaCluster
-      - CASSANDRA_SEEDS=ncassandra-1
+      - CASSANDRA_SEEDS=cassandra-1
       - MAX_HEAP_SIZE=2G
       - HEAP_NEWSIZE=512M
     depends_on:

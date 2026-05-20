@@ -1,5 +1,5 @@
 
-CREATE KEYSPACE nontonapa IF NOT EXIST nontonapa
+CREATE KEYSPACE IF NOT EXISTS nontonapa
 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
 USE nontonapa;
