@@ -12,7 +12,7 @@ const logWatchActivity = async (userId, tmdbId, genre, rating, review, isLiked, 
 };
 
 const getUserHistory = async (userId, limit = 10) => {
-    const query = 'SELECT genre FROM user_activity_log WHERE user_id = ? LIMIT ?';
+    const query = 'SELECT watched_at, tmdb_id, rating, review, is_liked, is_rewatch FROM user_activity_log WHERE user_id = ? LIMIT ?';
     const result = await db.execute(query, [userId, limit], { prepare: true });
     return result.rows;
 };
@@ -36,7 +36,7 @@ const getUserTopGenre = async (userId) => {
     const result = await db.execute(query, [userId], { prepare: true });
 
     if (result.rows.length === 0) return 'Romance';
-    
+
     if(result.rows.length > 0) return result.rows[0].feature_name;
     return 'Romance';
 };

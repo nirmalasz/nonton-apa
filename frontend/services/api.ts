@@ -114,4 +114,16 @@ export const api = {
       throw new Error(data.error || "Failed to fetch recommendations");
     return data.recommendations ;
   },
+
+  getDiary: async () => {
+    const res = await fetch(`${BASE_URL}/activity/diary`, {
+      method: "GET",
+      headers: getHeaders(true),
+    });
+    const data = await res.json();
+    if (!res.ok)
+      throw new Error(data.error || "Failed to fetch diary");
+    return data.entries ;
+  }
 };
+

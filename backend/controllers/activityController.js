@@ -1,4 +1,5 @@
 const activityRepository = require('../repositories/activityRepository');
+const tmdbService = require('../services/tmdbService');
 
 const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch) => {
     let addedPoint = 0;
@@ -37,6 +38,34 @@ const recordWatch = async (req, res) => {
     }
 };
 
+const getDiary = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const logs = await activityRepository.getUserHistory(userId, 50); 
+        
+        const diaryEntries = await Promise.all(
+            logs.map(async (log) => {
+                const movie = await tmdbService.getMovieDetails(log.tmdb_id);
+                return {
+                    watched_at: log.watched_at,
+                    tmdb_id: log.tmdb_id,
+                    rating: log.rating,
+                    is_liked: log.is_liked,
+                    is_rewatch: log.is_rewatch,
+                    review: log.review,
+                    ...movie,
+                    hasReview: log.review !== null && log.review !== ""
+                };
+            })
+        );
+
+        res.status(200).json({ entries: diaryEntries });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 
-module.exports = { recordWatch };
+
+module.exports = { recordWatch, getDiary };

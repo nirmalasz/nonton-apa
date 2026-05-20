@@ -254,7 +254,7 @@ export default function MovieDetailPage() {
       <LogMovieModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        tmdbId={movie.id}
+        tmdbId={movie.tmdb_id}
         movieTitle={movie.title}
         posterUrl={movie.poster_path}
         primaryGenre={movie.genres[0]} // First genre will be prioritezd
