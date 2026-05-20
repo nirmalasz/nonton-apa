@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -12,12 +13,18 @@ const getMovieDetails = async (tmdbId) => {
             tmdb_id: data.id,
             title: data.original_title,
             overview: data.overview,
-            poster_path: data.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : null,
+            backdrop_path: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
+            poster_path: data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : null,
+            production_company: data.production_companies[0].name,
             duration: data.runtime,
             genres: data.genres.map(g => g.name),
-            release_date: data.release_date,
+            release_date: data.release_date ? data.release_date.split('-')[0] : 'Unknown',
             rating: data.vote_average,
-            rating_count: data.vote_count
+            rating_count: data.vote_count,
+            status: data.status,
+            budget: data.budget,
+            revenue: data.revenue,
+            runtime: data.runtime
         }
     } catch (error) {
         console.error("TMDB Fetch Error: ", error);

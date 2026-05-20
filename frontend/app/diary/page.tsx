@@ -3,67 +3,43 @@
 import Link from "next/link";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { api } from "@/services/api";
+import { useEffect, useState } from "react";
 
-// MOCK DATA: Simulating the JOIN between Cassandra user_activity_log and TMDB
-const MOCK_DIARY_ENTRIES = [
-  {
-    id: "uuid-1",
-    tmdbId: 687163,
-    title: "Project Hail Mary",
-    year: "2026",
-    posterUrl: "https://www.themoviedb.org/t/p/w1280/yihdXomYb5kTeSivtFndMy5iDmf.jpg",
-    watchedAt: "2024-05-18T14:00:00Z",
-    rating: 5,
-    isLiked: true,
-    isRewatch: false,
-    hasReview: true,
-  },
-  {
-    id: "uuid-2",
-    tmdbId: 157336,
-    title: "Interstellar",
-    year: "2014",
-    posterUrl:
-      "https://www.themoviedb.org/t/p/w1280/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
-    watchedAt: "2024-05-12T20:30:00Z",
-    rating: 4,
-    isLiked: false,
-    isRewatch: true,
-    hasReview: true,
-  },
-  {
-    id: "uuid-3",
-    tmdbId: 372058,
-    title: "Your Name.",
-    year: "2016",
-    posterUrl:
-      "https://image.tmdb.org/t/p/w200/q719jXXEzOoYaps6babgKnONONX.jpg",
-    watchedAt: "2024-04-28T09:15:00Z",
-    rating: 5,
-    isLiked: true,
-    isRewatch: true,
-    hasReview: false,
-  },
-  {
-    id: "uuid-4",
-    tmdbId: 546554,
-    title: "Knives Out",
-    year: "2019",
-    posterUrl:
-      "https://image.tmdb.org/t/p/w200/pThyQovXQrw2m0s9x82twj48Jq4.jpg",
-    watchedAt: "2024-04-03T18:45:00Z",
-    rating: 4,
-    isLiked: true,
-    isRewatch: false,
-    hasReview: true,
-  },
-];
+interface DiaryEntry {
+  watched_at: string;
+  tmdb_id: number;
+  title: string;
+  year: string;
+  posterUrl: string;
+  rating: number;
+  is_liked: boolean;
+  is_rewatch: boolean;
+  hasReview: boolean;
+  review?: string | null;
+}
 
-// HELPER: Group entries by "Month Year"
-const groupEntriesByMonth = (entries: typeof MOCK_DIARY_ENTRIES) => {
-  return entries.reduce(
-    (groups, entry) => {
-      const date = new Date(entry.watchedAt);
+export default function DiaryPage() {
+  const [diaryEntries, setDiaryEntries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDiary = async () => {
+      try {
+        const data = await api.getDiary();
+        setDiaryEntries(data);
+      } catch (err) {
+        console.error("Failed to fetch diary:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDiary();
+  }, []);
+
+  const groupedDiary = diaryEntries.reduce(
+    (groups: Record<string, DiaryEntry[]>, entry: DiaryEntry) => {
+      const date = new Date(entry.watched_at);
       const monthYear = date.toLocaleString("default", {
         month: "long",
         year: "numeric",
@@ -73,18 +49,29 @@ const groupEntriesByMonth = (entries: typeof MOCK_DIARY_ENTRIES) => {
         groups[monthYear] = [];
       }
       groups[monthYear].push(entry);
+
+      // Inside DiaryPage.tsx
+      const datea = new Date(entry.watched_at);
+
+      // DEBUG: If this prints "Invalid Date", your timestamp format is weird!
+      if (isNaN(datea.getTime())) {
+        console.error("Bad date format:", entry.watched_at);
+      }
       return groups;
     },
-    {} as Record<string, typeof MOCK_DIARY_ENTRIES>,
+    {} as Record<string, DiaryEntry[]>,
   );
-};
 
-export default function DiaryPage() {
-  const groupedDiary = groupEntriesByMonth(MOCK_DIARY_ENTRIES);
+  if (isLoading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading Diary...
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#F9FBFD] flex flex-col flex-grow">
-      <Header isLoggedIn />
+      <Header />
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="mb-10 flex items-baseline gap-3 pt-10 pb-1">
@@ -92,7 +79,7 @@ export default function DiaryPage() {
             nirmala's diary
           </h1>
           <span className="text-[#6BAFD6]/80 font-semibold">
-            {MOCK_DIARY_ENTRIES.length} films
+            {diaryEntries.length} films
           </span>
         </div>
 
@@ -118,12 +105,16 @@ export default function DiaryPage() {
             {/* Table Rows */}
             <div className="flex flex-col">
               {entries.map((entry) => {
-                const date = new Date(entry.watchedAt);
+                const reviewPart = entry.review
+                  ? entry.review.substring(0, 10)
+                  : "no-rev";
+                const uniqueKey = `${entry.tmdb_id}-${entry.watched_at}-${reviewPart}`;
+                const date = new Date(entry.watched_at);
                 const day = date.getDate().toString().padStart(2, "0");
 
                 return (
                   <div
-                    key={entry.id}
+                    key={uniqueKey}
                     className="grid grid-cols-[40px_1fr] md:grid-cols-[50px_1fr_120px_100px] gap-4 items-center px-2 py-3 border-b border-[#8FBFDC]/10 hover:bg-white hover:shadow-sm transition-all group"
                   >
                     {/* Day Column */}
@@ -135,7 +126,7 @@ export default function DiaryPage() {
                     <div className="flex items-center gap-4">
                       {/* Mini Poster */}
                       <Link
-                        href={`/movie/${entry.tmdbId}`}
+                        href={`/movie/${entry.tmdb_id}`}
                         className="shrink-0 relative w-10 aspect-[2/3] rounded overflow-hidden border border-[#8FBFDC]/30 shadow-sm group-hover:border-[#4590BC]/50 transition-colors"
                       >
                         <img
@@ -148,7 +139,7 @@ export default function DiaryPage() {
 
                       {/* Title & Year */}
                       <div className="flex flex-wrap items-baseline gap-x-2">
-                        <Link href={`/movie/${entry.tmdbId}`}>
+                        <Link href={`/movie/${entry.tmdb_id}`}>
                           <h3 className="font-bold text-[#0A1116] group-hover:text-[#4590BC] transition-colors text-lg leading-tight">
                             {entry.title}
                           </h3>
@@ -161,15 +152,27 @@ export default function DiaryPage() {
 
                     {/* Rating Column */}
                     <div className="hidden md:flex justify-center text-[#4590BC] text-sm tracking-widest">
-                      {/* Array to render exact number of stars */}
-                      {"★".repeat(entry.rating)}
-                      {"☆".repeat(5 - entry.rating)}
+                      {(() => {
+                        // 1. Ensure rating is a number and clamp it between 0 and 5
+                        const rating = Math.max(
+                          0,
+                          Math.min(5, Number(entry.rating) || 0),
+                        );
+
+                        // 2. Now it is safe to use .repeat()
+                        return (
+                          <>
+                            {"★".repeat(rating)}
+                            {"☆".repeat(5 - rating)}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Icons Column (Like / Rewatch / Review) */}
                     <div className="hidden md:flex items-center justify-end gap-3 pr-2">
                       {/* Rewatch Icon */}
-                      {entry.isRewatch && (
+                      {entry.is_rewatch && (
                         <svg
                           className="w-4 h-4 text-[#6BAFD6]"
                           fill="none"
@@ -203,7 +206,7 @@ export default function DiaryPage() {
                       )}
 
                       {/* Liked Heart Icon */}
-                      {entry.isLiked ? (
+                      {entry.is_liked ? (
                         <svg
                           className="w-4 h-4 text-orange-500 fill-orange-500"
                           viewBox="0 0 24 24"

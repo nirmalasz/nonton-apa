@@ -4,7 +4,9 @@ import Link from "next/link";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import LogMovieModal from "@/components/LogMovie";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from 'next/navigation';
+import { api } from "@/services/api";
 
 // MOCK DATA
 const MOCK_MOVIE = {
@@ -66,16 +68,34 @@ const MOCK_MOVIE = {
 };
 
 export default function MovieDetailPage() {
+    const params = useParams();
+    const movieId = params.tmdb_id as string;
+
+    const [movie, setMovie] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(()=>{
+      const fetchMovie = async () => {
+        try {
+          const data = await api.getMovieDetails(movieId);
+          setMovie(data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      if (movieId) fetchMovie();
+    }, [movieId]);
+
+    if (!movie) return <div className="min-h-screen pt-20 text-center">Loading...</div>;
   return (
     <div className="min-h-screen bg-[#F9FBFD] flex flex-col">
-      <Header isLoggedIn />
+      <Header />
       {/* Dark Overlay for Backdrop*/}
       <section className="relative w-full pt-12 pb-20 overflow-hidden bg-[#0A1116]">
         {/* Blurred Backdrop Image */}
         <div
-          className="absolute inset-0 opacity-30 bg-cover bg-center blur-xl scale-110"
-          style={{ backgroundImage: `url(${MOCK_MOVIE.backdropUrl})` }}
+          className="absolute inset-0 opacity-30 bg-cover blur-sm bg-center scale-110"
+          style={{ backgroundImage: `url(${movie.backdrop_path})` }}
         />
         {/* Gradient Fade to connect with the content below */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A1116] via-transparent to-transparent opacity-80" />
@@ -86,8 +106,8 @@ export default function MovieDetailPage() {
           <div className="w-48 md:w-72 shrink-0 mx-auto md:mx-0">
             <div className="w-full aspect-[2/3] rounded-xl overflow-hidden border border-white/20 shadow-2xl shadow-black/50">
               <img
-                src={MOCK_MOVIE.posterUrl}
-                alt={`${MOCK_MOVIE.title} poster`}
+                src={movie.poster_path}
+                alt={`${movie.title} poster`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -98,15 +118,15 @@ export default function MovieDetailPage() {
             {/* Title & Director */}
             <div className="mb-6 text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-1 title-font">
-                {MOCK_MOVIE.title}{" "}
+                {movie.title}{" "}
                 <span className="text-gray-400 font-medium text-3xl">
-                  ({MOCK_MOVIE.year})
+                  ({movie.release_date})
                 </span>
               </h1>
               <p className="text-lg text-gray-300">
-                Directed by{" "}
+                Produced by{" "}
                 <span className="font-semibold text-white border-b border-[#4590BC] pb-0.5">
-                  {MOCK_MOVIE.director}
+                  {movie.production_company}
                 </span>
               </p>
             </div>
@@ -182,7 +202,7 @@ export default function MovieDetailPage() {
               <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-4 py-[4.5px] rounded-md border border-white/10">
                 <span className="text-[#6BAFD6] text-xl">★</span>
                 <span className="font-bold text-white">
-                  {MOCK_MOVIE.rating.toFixed(1)}
+                  {movie.rating.toFixed(1)}
                 </span>
               </div>
             </div>
@@ -190,13 +210,13 @@ export default function MovieDetailPage() {
             {/* Overview */}
             <div className="mb-6">
               <p className="text-gray-200 leading-relaxed text-sm md:text-base">
-                {MOCK_MOVIE.overview}
+                {movie.overview}
               </p>
             </div>
 
             {/* Genres */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              {MOCK_MOVIE.genres.map((genre) => (
+              {movie.genres.map((genre: string) => (
                 <span
                   key={genre}
                   className="px-3 py-1 bg-[#8FBFDC]/20 text-[#8FBFDC] text-xs uppercase font-bold tracking-wider rounded-lg"
@@ -209,58 +229,35 @@ export default function MovieDetailPage() {
         </div>
       </section>
 
-      {/* CAST SECTION */}
-      <section className="flex-grow max-w-5xl mx-auto w-full px-6 py-12">
-        <div className="mb-6 flex items-center gap-4 border-[#6BAFD6]/40 border-b-[2px] pb-2">
-          <h2 className="text-lg font-bold text-[#0A1116] uppercase tracking-wider">
-            Cast
-          </h2>
-        </div>
+      {/* METADATA SECTION */}
+<section className="flex-grow max-w-5xl mx-auto w-full px-6 py-12">
+  <div className="mb-8 flex items-center gap-4 border-[#6BAFD6]/40 border-b-[2px] pb-2">
+    <h2 className="text-lg font-bold text-[#6BAFD6] uppercase tracking-wider">Details</h2>
+  </div>
 
-        {/* Horizontal Scrolling Grid for Cast */}
-        <div className="flex overflow-x-auto gap-4 pb-4 snap-x">
-          {MOCK_MOVIE.cast.map((actor) => (
-            <div
-              key={actor.id}
-              className="flex flex-col w-32 shrink-0 snap-start group"
-            >
-              <div className="w-full aspect-[2/3] bg-gray-200 rounded-md overflow-hidden border border-[#8FBFDC]/20 mb-2">
-                {actor.profileUrl ? (
-                  <img
-                    src={actor.profileUrl}
-                    alt={actor.name}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <svg
-                      className="w-8 h-8"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <h4 className="font-bold text-sm text-[#0A1116] leading-tight group-hover:text-[#4590BC] transition-colors">
-                {actor.name}
-              </h4>
-              <p className="text-xs text-gray-500 mt-0.5">{actor.role}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    {[
+      { label: 'Status', value: movie.status },
+      { label: 'Budget', value: movie.budget ? `$${(movie.budget / 1000000).toFixed(1)}M` : 'N/A' },
+      { label: 'Revenue', value: movie.revenue ? `$${(movie.revenue / 1000000).toFixed(1)}M` : 'N/A' },
+      { label: 'Runtime', value: `${movie.runtime} min` }
+    ].map((item, i) => (
+      <div key={i} className="bg-white p-4 rounded-xl border-2 border-[#8FBFDC]/40 shadow-sm">
+        <p className="text-xs font-bold text-[#8FBFDC] uppercase tracking-wider mb-1">{item.label}</p>
+        <p className="font-semibold text-[#0A1116]">{item.value}</p>
+      </div>
+    ))}
+  </div>
+</section>
       <Footer />
 
       <LogMovieModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        tmdbId={MOCK_MOVIE.id}
-        movieTitle={MOCK_MOVIE.title}
-        posterUrl={MOCK_MOVIE.posterUrl}
-        primaryGenre={MOCK_MOVIE.genres[0]} // First genre will be prioritezd
+        tmdbId={movie.tmdb_id}
+        movieTitle={movie.title}
+        posterUrl={movie.poster_path}
+        primaryGenre={movie.genres[0]} // First genre will be prioritezd
       />
     </div>
   );

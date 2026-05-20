@@ -5,34 +5,29 @@ import Footer from "@/components/footer";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { loginUser } from "@/lib/api";
+import { api } from '@/services/api';
 
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
 
-    // const response = await loginUser(formData);
-
-    // if (response.success) {
-    //     alert(`Welcome back, ${response.data.displayName}!`);
-    //     localStorage.setItem("whisper_user", JSON.stringify(response.data));
-    //     router.push(`/${response.data.username}`);
-    // } else {
-    //     alert(response.message || "Invalid credentials");
-    // }
-    setIsLoading(false);
-  };
+        try {
+            await api.login(username, password);
+            router.push('/');
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
   return (
     <div className="flex flex-col min-h-screen bg-[#D9D9D9]">
       <Header /*rightAction="register"*/ />
@@ -55,16 +50,16 @@ export default function Login() {
               Login
             </h2>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1" suppressHydrationWarning>
-                <label className="text-black text-sm font-bold">Email</label>
+                <label className="text-black text-sm font-bold">Username</label>
                 <input
-                  name="email"
-                  type="email"
+                  name="username"
+                  type="text"
                   className="border border-[#6BAFD6] rounded-lg px-3 py-2 outline-none  text-black"
                   required
-                  value={formData.email}
-                  onChange={handleChange}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
 
@@ -75,8 +70,8 @@ export default function Login() {
                   type="password"
                   className="border border-[#6BAFD6] rounded-lg px-3 py-2 outline-none  text-black"
                   required
-                  value={formData.password}
-                  onChange={handleChange}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
 

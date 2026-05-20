@@ -1,4 +1,5 @@
 const activityRepository = require('../repositories/activityRepository');
+const tmdbService = require('../services/tmdbService');
 
 const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch) => {
     let addedPoint = 0;
@@ -7,10 +8,12 @@ const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch)
     if (isRewatch) addedPoint += 3;
     else if (rating >= 3) addedPoint += 2;
     else if (rating <= 2) addedPoint -= 2;
-    const currentProfile = await activityRepository.getCurrentScore(userId, genre);
+    const currentProfileRow = await activityRepository.getCurrentScore(userId, genre);
     
     let currentWeight = 0;
-    if (currentProfile.rows.length > 0) currentWeight = currentProfile.rows[0].feature_weight;
+    if (currentProfileRow) {
+        currentWeight = currentProfileRow.feature_weight;
+    }
 
     const newWeight = currentWeight + addedPoint;
     await activityRepository.updateUserPreferenceScore(userId, genre, newWeight);
@@ -18,7 +21,8 @@ const calculateAndSaveWeight = async (userId, genre, rating, isLiked, isRewatch)
 
 const recordWatch = async (req, res) => {
     try {
-        const { userId, tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
+        const userId = req.user.userId;
+        const { tmdbId, genre, rating, review, isLiked, isRewatch } = req.body;
         await activityRepository.logWatchActivity(
             userId, tmdbId, genre, rating,
             review !== undefined ? review : null,
@@ -26,7 +30,7 @@ const recordWatch = async (req, res) => {
             isRewatch !== undefined ? isRewatch : false
         );
 
-        calculateAndSaveWeight(userId, genre, rating, isLiked, isRewatch);
+        await calculateAndSaveWeight(userId, genre, rating, isLiked, isRewatch);
 
         res.status(201).json({ success: true, message: "Watch log recorded and preferences updated successfully." });
     } catch (error) {
@@ -34,6 +38,34 @@ const recordWatch = async (req, res) => {
     }
 };
 
+const getDiary = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const logs = await activityRepository.getUserHistory(userId, 50); 
+        
+        const diaryEntries = await Promise.all(
+            logs.map(async (log) => {
+                const movie = await tmdbService.getMovieDetails(log.tmdb_id);
+                return {
+                    watched_at: log.watched_at,
+                    tmdb_id: log.tmdb_id,
+                    rating: log.rating,
+                    is_liked: log.is_liked,
+                    is_rewatch: log.is_rewatch,
+                    review: log.review,
+                    ...movie,
+                    hasReview: log.review !== null && log.review !== ""
+                };
+            })
+        );
+
+        res.status(200).json({ entries: diaryEntries });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 
-module.exports = { recordWatch };
+
+module.exports = { recordWatch, getDiary };

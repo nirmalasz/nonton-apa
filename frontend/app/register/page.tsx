@@ -4,44 +4,30 @@ import Footer from "@/components/footer";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { registerUser } from "@/lib/api";
+import { api } from '@/services/api';
 
 export default function Register() {
-  console.log("My Backend URL is:", process.env.NEXT_PUBLIC_API_URL);
+  console.log("My Backend URL is:", process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    username: "",
-    displayName: "",
-    email: "",
-    password: "",
-  });
+  const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // const response = await registerUser(formData);
-
-    try {
-      // if (response.success) {
-      //   alert("Registration successful! Please log in.");
-      //   router.push("/login"); // Redirect to login page
-      // } else {
-      //   alert(`Registration failed: ${response.message}`);
-      //   console.error("Backend response:", response);
-      // }
-    } catch (error) {
-      alert("Network error! Make sure your Express server is running.");
-      console.error("Fetch error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        try {
+            await api.register(username, password);
+            router.push('/login?registered=true');
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#D9D9D9]">
@@ -49,7 +35,7 @@ export default function Register() {
 
       <main className="flex flex-1 items-center justify-center p-4">
         <div className="bg-white rounded-3xl w-full max-w-4xl flex flex-col md:flex-row p-6 gap-4 shadow-sm items-stretch">
-          <div className="relative w-full md:w-1/2 min-h-[400px] md:min-h-full rounded-2xl overflow-hidden">
+          <div className="relative w-full md:w-1/2 min-h-[320px] md:min-h-[400px] rounded-2xl overflow-hidden">
             <Image
               src="https://i.pinimg.com/736x/ad/48/4d/ad484d8319f03ea50f5a62ed37bbc7d1.jpg"
               alt="Register Illustration"
@@ -59,72 +45,42 @@ export default function Register() {
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
-          <div className="w-full md:w-1/2 flex flex-col justify-center py-4 px-4 md:px-10">
-            <h2 className="text-black font-bold text-3xl mb-8 text-center">
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-4 md:px-8">
+            <h2 className="text-black font-bold text-2xl mb-6 text-center">
               Register
             </h2>
 
             <form
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-5"
+              onSubmit={handleRegister}
+              className="flex flex-col gap-4"
               suppressHydrationWarning
             >
-              <div className="flex flex-col gap-1.5">
-                <label className="text-black text-sm font-semibold ml-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-black text-sm font-bold">
                   Username
                 </label>
                 <input
                   name="username"
                   type="text"
                   required
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="border border-[#6BAFD6] rounded-xl px-4 py-2.5 outline-none focus:ring-2 transition-all text-black"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="border border-[#6BAFD6] rounded-lg px-3 py-2 outline-none  text-black"
                   suppressHydrationWarning
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-black text-sm font-semibold ml-1">
-                  Display Name
-                </label>
-                <input
-                  name="displayName"
-                  type="text"
-                  required
-                  value={formData.displayName}
-                  onChange={handleChange}
-                  className="border border-[#6BAFD6] rounded-xl px-4 py-2.5 outline-none focus:ring-2 transition-all text-black"
-                  suppressHydrationWarning
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-black text-sm font-semibold ml-1">
-                  Email
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="border border-[#6BAFD6] rounded-xl px-4 py-2.5 outline-none focus:ring-2 transition-all text-black"
-                  suppressHydrationWarning
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-black text-sm font-semibold ml-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-black text-sm font-bold">
                   Password
                 </label>
                 <input
                   name="password"
                   type="password"
                   required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="border border-[#6BAFD6] rounded-xl px-4 py-2.5 outline-none focus:ring-2 transition-all text-black"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="border border-[#6BAFD6] rounded-lg px-3 py-2 outline-none  text-black"
                   suppressHydrationWarning
                 />
               </div>

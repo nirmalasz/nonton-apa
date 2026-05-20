@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const cron = require('node-cron');
 const db = require('../database/db');
 const userRepo = require('../repositories/userRepository');
@@ -29,17 +30,22 @@ const tmdbGenreMap = {
 const runRecommendationEngine = async () => {
     console.log("[CRON] Starting Recommendation Engine...");
     try {
-        const users = await userRepo.getAllUser;
+        const users = await userRepo.getAllUser();
         for(const user of users) {
             const userId = user.user_id;
 
             // getting user top genre
-            const userTopGenre = activityRepo.getUserTopGenre(userId);
+            const userTopGenre = await activityRepo.getUserTopGenre(userId);
 
-            const tmdbGenreId = tmdbGenreMap[topGenreName] || 10749;
+            const tmdbGenreId = tmdbGenreMap[userTopGenre] || 10749;
 
-            const response = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_KEY}&with_genres=${tmdbGenreId}&sort_by=popularity.desc`);
+            const response = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${process.env.TMDB_API_KEY}&with_genres=${tmdbGenreId}&sort_by=popularity.desc`);
             const tmdbData = await response.json();
+
+            if (!tmdbData.results) {
+                console.error("[CRON] TMDB API Error:", tmdbData);
+                continue; 
+            }
             const topMovies = tmdbData.results.slice(0, 6);
 
             for (let i = 0; i < topMovies.length; i++) {
@@ -53,7 +59,7 @@ const runRecommendationEngine = async () => {
                 `, [userId, rank, movie.id, 99.0 - i], { prepare: true });
                 // the match_score will shown as 99, 98, 97, and so on
             }
-        console.error("[CRON] Recommendation Table successfully updated for all users");
+        console.log("[CRON] Recommendation Table successfully updated for all users");
         }
     } catch (error) {
         console.error("[CRON] Error running recs engine: ", error);
@@ -64,5 +70,6 @@ const runRecommendationEngine = async () => {
 cron.schedule('*/10 * * * *', () => {
     runRecommendationEngine();
 });
+
 
 module.exports = { runRecommendationEngine };
