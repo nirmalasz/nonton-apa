@@ -3,6 +3,9 @@ import Link from 'next/link';
 import MovieCard from '@/components/MovieCard';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
+import { useEffect, useState } from 'react';
+import { api } from '@/services/api';
+import { mapGenreIdsToNames } from '@/utills/genreMap';
 
 // will later replace this with get popular movie api
 const MOCK_TRENDING_MOVIES = [
@@ -49,6 +52,23 @@ const MOCK_TRENDING_MOVIES = [
 ];
 
 export default function LandingPage() {
+  const [trendingMovies, setTrendingMovies] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(()=>{
+    const fetchTrending = async () => {
+      try {
+        const movies = await api.getPopularMovies();
+        setTrendingMovies(movies);
+      } catch (error) {
+        console.error("Failed to load trending movies", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
@@ -95,14 +115,14 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">
-          {MOCK_TRENDING_MOVIES.map((movie) => (
+          {trendingMovies.map((movie) => (
             <MovieCard 
-              key={movie.id}
-              id={movie.id}
+              key={movie.tmdb_id}
+              id={movie.tmdb_id}
               title={movie.title}
-              year={movie.year}
-              posterUrl={movie.posterUrl}
-              genres={movie.genres}
+              year={movie.release_year}
+              posterUrl={movie.poster_path}
+              genres={mapGenreIdsToNames(movie.genre_ids)}
               rating={movie.rating}
             />
           ))}
